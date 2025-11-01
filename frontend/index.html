@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <body>
+    <h2>SSE Demo</h2>
+    <button id="submitBtn">Submit</button>
+    <pre id="output"></pre>
+
+    <script>
+      document.getElementById("submitBtn").onclick = async () => {
+        const res = await fetch("http://localhost:3000/api/submission", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ yourSolution: "xin chào gemini" }),
+        });
+
+        const data = await res.json();
+        document.getElementById("output").textContent = `Đã gửi: ${JSON.stringify(data)}`;
+
+        // Mở kết nối SSE
+        const evt = new EventSource(`http://localhost:3000/api/stream/${data.id}`);
+        evt.addEventListener("result", (event) => {
+          document.getElementById("output").textContent += `\nKết quả: ${event.data}`;
+          evt.close();
+        });
+      };
+    </script>
+  </body>
+</html>
