@@ -1,28 +1,107 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <body>
-    <h2>SSE Demo</h2>
-    <button id="submitBtn">Submit</button>
-    <pre id="output"></pre>
+<head>
+  <meta charset="UTF-8" />
+  <title>Online Judge - SSE Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
+    textarea { width: 100%; height: 150px; margin-top: 8px; }
+    button { margin-top: 10px; padding: 10px 20px; }
+    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h2>🎯 Online Judge Test Client</h2>
 
-    <script>
-      document.getElementById("submitBtn").onclick = async () => {
-        const res = await fetch("http://localhost:3000/api/submission", {
+  <label>Problem ID:</label>
+  <input type="number" id="problemId" placeholder="Nhập ID bài toán" />
+
+  <label>Giải pháp của bạn:</label>
+  <textarea id="solution" placeholder="Dán code hoặc lời giải vào đây..."></textarea>
+
+  <button id="submitBtn">Gửi bài và chấm điểm</button>
+
+  <h3>Kết quả:</h3>
+  <pre id="output"></pre>
+
+  <script>
+    const JWT_TOKEN = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbmgyIiwiaWQiOjIyLCJyb2xlIjoiTU9ERVJBVE9SIiwiaWF0IjoxNzY0NDA2MjY0LCJleHAiOjE3NjQ0OTI2NjR9.xTWv_x_r_-QPtAg6NNIxbzfCFggyjxZoPXZZ8twmwvfgSk_9JYfVFw2PQ1N2UyVM";
+    const API_BASE = "http://localhost:8080/api/submissions";
+    const output = document.getElementById("output");
+
+    document.getElementById("submitBtn").onclick = async () => {
+      output.textContent = "⏳ Đang gửi bài...";
+
+      const problemId = document.getElementById("problemId").value;
+      const yourSolution = document.getElementById("solution").value.trim();
+
+      if (!problemId || !yourSolution) {
+        alert("Vui lòng nhập đầy đủ Problem ID và Solution!");
+        return;
+      }
+
+      const createBody = { problemId: parseInt(problemId), yourSolution };
+
+      try {
+        const res = await fetch(API_BASE, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ yourSolution: "xin chào gemini" }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + JWT_TOKEN
+          },
+          body: JSON.stringify(createBody)
         });
+
+        if (!res.ok) throw new Error("Tạo submission thất bại: " + res.status);
 
         const data = await res.json();
-        document.getElementById("output").textContent = `Đã gửi: ${JSON.stringify(data)}`;
+        const submissionId = data.submissionId;
 
-        // Mở kết nối SSE
-        const evt = new EventSource(`http://localhost:3000/api/stream/${data.id}`);
-        evt.addEventListener("result", (event) => {
-          document.getElementById("output").textContent += `\nKết quả: ${event.data}`;
-          evt.close();
+        output.textContent = `✅ Submission #${submissionId} tạo thành công.\nĐang bắt đầu chấm...\n\n`;
+
+        if (window.eventSource) window.eventSource.close();
+
+        const type = 1; // 1 = chấm điểm
+        const streamUrl = `${API_BASE}/stream?id=${submissionId}&type=${type}&token=${encodeURIComponent(JWT_TOKEN)}`;
+        const eventSource = new EventSource(streamUrl);
+        window.eventSource = eventSource;
+
+        eventSource.onmessage = (event) => {
+          output.textContent += event.data;
+        };
+
+        eventSource.addEventListener("complete", async (event) => {
+          output.textContent += "\n\n🎉 Hoàn thành chấm điểm!";
+          eventSource.close();
+
+          // hỏi người dùng có muốn xem giải thích không
+          const wantExplanation = confirm("Bạn có muốn xem giải thích tại sao lại có số điểm này không?");
+          if (wantExplanation) {
+            output.textContent += "\n\n⏳ Đang lấy giải thích...\n";
+            const explainUrl = `${API_BASE}/stream?id=${submissionId}&type=2&token=${encodeURIComponent(JWT_TOKEN)}`;
+            const explainSource = new EventSource(explainUrl);
+            explainSource.onmessage = (e) => output.textContent += e.data;
+            explainSource.addEventListener("complete", () => {
+              output.textContent += "\n\n✅ Hoàn tất giải thích!";
+              explainSource.close();
+            });
+            explainSource.onerror = () => {
+              output.textContent += "\n❌ Lỗi SSE khi lấy giải thích";
+              explainSource.close();
+            };
+          }
         });
-      };
-    </script>
-  </body>
+
+        eventSource.onerror = (event) => {
+          output.textContent += "\n❌ Lỗi SSE";
+          eventSource.close();
+        };
+
+      } catch (err) {
+        output.textContent = "❌ Lỗi: " + err.message;
+        console.error(err);
+      }
+    };
+  </script>
+</body>
 </html>
