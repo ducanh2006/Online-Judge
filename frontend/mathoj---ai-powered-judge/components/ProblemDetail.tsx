@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { problemService, submissionService } from '../services/api';
 import { ProblemDTO } from '../types';
-import { Send, Clock, CheckCircle, Terminal, HelpCircle, Loader, Play } from 'lucide-react';
+import { Send, Clock, Terminal, HelpCircle, Loader, Play } from 'lucide-react';
 
 const ProblemDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -163,10 +164,10 @@ const ProblemDetail: React.FC = () => {
                       {problem.subject?.name}
                     </span>
                     <span className={`${
-                        problem.difficulty === 'Hard' ? 'text-red-600' : 
-                        problem.difficulty === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                        (problem.difficulty >= 8) ? 'text-red-600' : 
+                        (problem.difficulty >= 4) ? 'text-yellow-600' : 'text-green-600'
                     } font-medium`}>
-                        {problem.difficulty}
+                        Level {problem.difficulty}
                     </span>
                  </div>
               </div>

@@ -12,7 +12,7 @@ export interface SubjectDTO {
 export interface ProblemDTO {
   id: number;
   title: string;
-  difficulty: string; // 'byte' in java, represented as string here usually
+  difficulty: number; // Changed to number (1-10)
   lastUpdated: string;
   subject?: SubjectDTO;
   tags: TagDTO[];
@@ -63,7 +63,7 @@ export interface ProblemRequest {
   title: string;
   description: string;
   solution: string;
-  difficulty: string;
+  difficulty: number; // Changed to number (1-10)
   subjectId: number;
   tags: string[];
 }

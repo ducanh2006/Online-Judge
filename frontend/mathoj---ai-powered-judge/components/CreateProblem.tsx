@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { problemService, subjectService } from '../services/api';
 import { SubjectDTO } from '../types';
-import { Plus, Save, BookOpen, AlertCircle } from 'lucide-react';
+import { Plus, BookOpen, AlertCircle } from 'lucide-react';
 
 const CreateProblem: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const CreateProblem: React.FC = () => {
   // Problem Form State
   const [formData, setFormData] = useState({
     title: '',
-    difficulty: 'Easy',
+    difficulty: 1, // Default to 1
     subjectId: '',
     tags: '',
     description: '',
@@ -134,7 +135,7 @@ const CreateProblem: React.FC = () => {
             {/* Difficulty */}
             <div className="sm:col-span-2">
               <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700">
-                Difficulty
+                Difficulty (1-10)
               </label>
               <div className="mt-1">
                 <select
@@ -142,11 +143,13 @@ const CreateProblem: React.FC = () => {
                   name="difficulty"
                   className="shadow-sm focus:ring-vnoi-500 focus:border-vnoi-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                   value={formData.difficulty}
-                  onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, difficulty: parseInt(e.target.value) })}
                 >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  {[...Array(10)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

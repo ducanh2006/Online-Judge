@@ -99,6 +99,12 @@ const ProblemList: React.FC = () => {
       );
   };
 
+  const getDifficultyColor = (diff: number) => {
+      if (diff >= 8) return 'bg-red-100 text-red-800';
+      if (diff >= 4) return 'bg-yellow-100 text-yellow-800';
+      return 'bg-green-100 text-green-800';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -152,12 +158,8 @@ const ProblemList: React.FC = () => {
                               </Link>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                prob.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
-                                prob.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {prob.difficulty || 'Easy'}
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyColor(prob.difficulty)}`}>
+                                Level {prob.difficulty}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
