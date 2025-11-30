@@ -37,11 +37,18 @@ import com.onlinejudge.repository.UserRepository;
 // }
 
 
+// cái này chỉ chạy một lần khi khởi động hệ thống
 @Configuration
+// nếu trong java spring boot ta chặn ngay từ tầng config thì người dùng không thể truy cập được API trừ khi có có token gửi kèm đúng, 
+// còn nếu ở tầng config ta cho permit All sau đó mới kiểm tra jwt token thì người dùng vẫn truy cập được vào API nhưng do không có token nên không làm gì được
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        // auth.anyRequest().permitAll() cái này cấu hình để CHO PHÉP TẤT CẢ các request truy cập (Ủy quyền mở hoàn toàn), dù có JWT hay không.
+        // dồng thời tắt csrf đi vì ta không dùng session lưu trạng thái người dùng
+        // sau đó nó sẽ tự động gọi cái JwtAuthenticationFilter để kiểm tra jwt token ( cái mà ta tự viết )
+        // JwtAuthenticationFilter sẽ được gọi trước cái UsernamePasswordAuthenticationFilter của Spring Security 
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()) // mặc định mở hết

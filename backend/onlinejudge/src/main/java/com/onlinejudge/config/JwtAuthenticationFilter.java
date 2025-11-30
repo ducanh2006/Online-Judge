@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.onlinejudge.service.JwtUtils;
+import com.onlinejudge.utils.JwtUtils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -19,6 +19,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+// đây là chỗ đầu tiên mà API đi vào, chạy mỗi lần khi có request
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -32,7 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        System.out.println(" vao di filter request ");
+        
+        // nếu thành công thì trong SecurityContextHolder.getContext().setAuthentication(authentication) 
+        // sẽ có thông tin của người dùng đã được xác thực lấy từ token
+        System.out.println(" đi vào filter request ");
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -58,6 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 }
             } catch (JwtException e) {
+                System.out.println(" looix roi");
+
                 System.out.println("JWT token is not valid " + e.getMessage());
             }
         }

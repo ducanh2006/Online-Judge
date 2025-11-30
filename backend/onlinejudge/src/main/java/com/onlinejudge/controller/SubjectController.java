@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.onlinejudge.dto.SubjectDTO;
-import com.onlinejudge.payload.SubjectRequest;
+import com.onlinejudge.payload.request.SubjectRequest;
 import com.onlinejudge.service.SubjectService;
 
 

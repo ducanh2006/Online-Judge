@@ -7,20 +7,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.onlinejudge.entity.UserEntity;
-import com.onlinejudge.payload.JwtResponse;
-import com.onlinejudge.payload.LoginRequest;
-import com.onlinejudge.payload.RegisterRequest;
+import com.onlinejudge.payload.response.JwtResponse;
+import com.onlinejudge.payload.request.LoginRequest;
+import com.onlinejudge.payload.request.RegisterRequest;
 import com.onlinejudge.repository.UserRepository;
-import com.onlinejudge.service.JwtUtils;
+import com.onlinejudge.utils.JwtUtils;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin
 public class AuthController {
 
     @Autowired private AuthenticationManager authenticationManager;

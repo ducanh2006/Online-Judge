@@ -1,11 +1,9 @@
 package com.onlinejudge.service;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +19,7 @@ import com.onlinejudge.entity.ProblemTagEntity;
 import com.onlinejudge.entity.ProblemTagId;
 import com.onlinejudge.entity.SubjectEntity;
 import com.onlinejudge.entity.TagEntity;
-import com.onlinejudge.payload.ProblemRequest;
+import com.onlinejudge.payload.request.ProblemRequest;
 import com.onlinejudge.repository.ProblemRepository;
 import com.onlinejudge.repository.SubjectRepository;
 import com.onlinejudge.repository.TagRepository;
@@ -29,27 +27,17 @@ import com.onlinejudge.repository.TagRepository;
 import jakarta.transaction.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ProblemService {
     private final ProblemRepository problemRepository;
     private final SubjectRepository subjectRepository;
     private final TagRepository tagRepository;
     private final ProblemMapper problemMapper;
 
-    public ProblemService(ProblemRepository problemRepository, SubjectRepository subjectRepository, TagRepository tagRepository, ProblemMapper problemMapper) {
-        this.problemRepository = problemRepository;
-        this.subjectRepository = subjectRepository;
-        this.tagRepository = tagRepository;
-        this.problemMapper = problemMapper;
-    }
-
-    public ProblemDTO getProblemDetails(int id, boolean isAdmin) {
-        ProblemEntity problem = problemRepository.findProblemByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
-        return problemMapper.toDetailDto(problem, true);
-    }
-
     public PageResponse<ProblemDTO> searchProblems(Integer problemId, List<Integer> subjectIds, List<Integer> tagIds,
-                                                   boolean matchAll, int page, int size, String sort) {
+                                                   int page, int size, String sort) {
+
+        // 1. Xử lý Sorting (Giữ nguyên logic cũ của bạn)
         Sort sortOrder = Sort.by(Sort.Direction.DESC, "lastUpdated");
         if (sort != null) {
             try {
@@ -59,13 +47,26 @@ public class ProblemService {
                 }
             } catch (Exception e) {}
         }
+
+        // Lưu ý: PageRequest.of nhận index bắt đầu từ 0.
+        // Đảm bảo Controller đã truyền vào (page - 1) hoặc bạn trừ đi ở đây nếu Controller truyền page=1.
         Pageable pageable = PageRequest.of(page, size, sortOrder);
 
-        Page<ProblemEntity> problemPage;
-
+        // 2. Xử lý tìm kiếm theo ID cụ thể (Giữ nguyên logic cũ - Fast path)
         if (problemId != null) {
-            ProblemDTO problem = getProblemDetails(problemId, false);
-            PageResponse<ProblemDTO> response = PageResponse.<ProblemDTO>builder()
+            Optional<ProblemEntity> problemEntity = problemRepository.findProblemByIdWithDetails(problemId);
+            if( problemEntity.isEmpty() ){
+                return PageResponse.<ProblemDTO>builder()
+                        .content(Collections.emptyList())
+                        .pageNumber(1)
+                        .pageSize(1)
+                        .totalElements(0L)
+                        .totalPages(0)
+                        .isLast(true)
+                        .build();
+            }
+            ProblemDTO problem = problemMapper.toDetailDto(problemEntity.get(),true);
+            return PageResponse.<ProblemDTO>builder()
                     .content(Collections.singletonList(problem))
                     .pageNumber(1)
                     .pageSize(1)
@@ -73,22 +74,34 @@ public class ProblemService {
                     .totalPages(1)
                     .isLast(true)
                     .build();
-            return response;
-        } else if (tagIds != null && !tagIds.isEmpty()) {
-            problemPage = problemRepository.searchByTagIds(tagIds, matchAll, pageable);
-        } else if (subjectIds != null && !subjectIds.isEmpty()) {
-            problemPage = problemRepository.searchBySubjectIds(subjectIds, pageable);
-        } else {
-            problemPage = problemRepository.findAllProblemsWithDetails(pageable);
         }
 
+        // 3. Chuẩn bị dữ liệu cho Repository (Logic mới)
+        // Chuyển List rỗng thành null để kích hoạt logic "bỏ qua bộ lọc" trong câu SQL (:list IS NULL)
+        List<Integer> cleanSubjectIds = (subjectIds != null && !subjectIds.isEmpty()) ? subjectIds : null;
+        List<Integer> cleanTagIds = (tagIds != null && !tagIds.isEmpty()) ? tagIds : null;
+
+        // Tính số lượng tag cần khớp (cho mệnh đề HAVING COUNT trong SQL)
+        Long tagCount = (cleanTagIds != null) ? (long) cleanTagIds.size() : 0L;
+
+        // 4. Gọi phương thức repository mới
+        // Lưu ý: Tham số matchAll hiện tại không dùng vì câu SQL đang mặc định là AND (phải khớp tất cả tags)
+        Page<ProblemEntity> problemPage = problemRepository.searchProblems(
+                cleanSubjectIds,
+                cleanTagIds,
+                tagCount,
+                pageable
+        );
+
+
+        // 5. Mapping dữ liệu trả về (Giữ nguyên logic cũ)
         List<ProblemDTO> dtos = problemPage.getContent().stream()
-                .map(problemMapper::toListDto)
+                .map(problemMapper::toListDto) // Sử dụng mapper để chuyển đổi Entity -> DTO
                 .collect(Collectors.toList());
 
         return PageResponse.<ProblemDTO>builder()
                 .content(dtos)
-                .pageNumber(problemPage.getNumber() + 1)
+                .pageNumber(problemPage.getNumber() + 1) // +1 để trả về số trang bắt đầu từ 1 cho FE
                 .pageSize(problemPage.getSize())
                 .totalElements(problemPage.getTotalElements())
                 .totalPages(problemPage.getTotalPages())

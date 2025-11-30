@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.onlinejudge.dto.TagDTO;
-import com.onlinejudge.payload.TagRequest;
+import com.onlinejudge.payload.request.TagRequest;
 import com.onlinejudge.service.TagService;
 
 @CrossOrigin

@@ -23,9 +23,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.onlinejudge.dto.PageResponse;
 import com.onlinejudge.dto.SubmissionDTO;
-import com.onlinejudge.payload.CreateSubmissionRequest;
-import com.onlinejudge.payload.SubmissionCreatedResponse;
-import com.onlinejudge.service.JwtUtils;
+import com.onlinejudge.payload.request.CreateSubmissionRequest;
+import com.onlinejudge.payload.response.SubmissionCreatedResponse;
+import com.onlinejudge.utils.JwtUtils;
 import com.onlinejudge.service.SubmissionService;
 import com.openai.client.OpenAIClient;
 import com.openai.core.http.StreamResponse;

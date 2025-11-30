@@ -1,4 +1,4 @@
-package com.onlinejudge.service;
+package com.onlinejudge.utils;
 
 import java.security.Key;
 import java.util.Date;

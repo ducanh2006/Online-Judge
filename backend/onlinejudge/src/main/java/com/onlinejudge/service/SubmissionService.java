@@ -1,4 +1,5 @@
 package com.onlinejudge.service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,8 +17,8 @@ import com.onlinejudge.entity.SubmissionEntity;
 import com.onlinejudge.entity.UserEntity;
 import com.onlinejudge.mapper.ProblemMapper;
 import com.onlinejudge.mapper.SubmissionMapper;
-import com.onlinejudge.payload.CreateSubmissionRequest;
-import com.onlinejudge.payload.SubmissionCreatedResponse;
+import com.onlinejudge.payload.request.CreateSubmissionRequest;
+import com.onlinejudge.payload.response.SubmissionCreatedResponse;
 import com.onlinejudge.repository.ProblemRepository;
 import com.onlinejudge.repository.SubmissionRepository;
 import com.onlinejudge.repository.UserRepository;
@@ -64,7 +65,13 @@ public class SubmissionService {
         System.out.println(" chay xong den dong User ");
         ProblemEntity problem = problemRepository.findById(request.getProblemId()).orElseThrow(() -> new RuntimeException("Problem not found"));
         System.out.println(" chay xong den problem ");
-        SubmissionEntity submission = SubmissionEntity.builder().user(user).problem(problem).yourSolution(request.getYourSolution()).status(SubmissionEntity.SubmissionStatus.Pending).build();
+        SubmissionEntity submission = SubmissionEntity.builder()
+                                                    .user(user)
+                                                    .problem(problem)
+                                                    .yourSolution(request.getYourSolution())
+                                                    .status(SubmissionEntity.SubmissionStatus.Pending)
+                                                    .submittedAt(LocalDateTime.now())
+                                                    .build();
         System.out.println(" chay xong submission");    
         SubmissionEntity saved = submissionRepository.save(submission);
         System.out.println(" chay xong den save id");
@@ -185,6 +192,7 @@ public class SubmissionService {
         SubmissionEntity submission = submissionRepository.findById(id).orElseThrow(() -> new RuntimeException("Submission not found"));
         submission.setStatus(SubmissionEntity.SubmissionStatus.Completed);
         submission.setScore(score);
+        submission.setSubmittedAt(LocalDateTime.now());
         submissionRepository.save(submission);
     }
 

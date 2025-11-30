@@ -3,6 +3,7 @@ package com.onlinejudge.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.onlinejudge.payload.request.SubjectRequest;
 import org.springframework.stereotype.Service;
 
 import com.onlinejudge.dto.SubjectDTO;
@@ -19,7 +20,7 @@ public class SubjectService {
         return subjectRepository.findAll().stream().map(s -> SubjectDTO.builder().id(s.getId()).name(s.getName()).build()).collect(Collectors.toList());
     }
 
-    public SubjectDTO createSubject(com.onlinejudge.payload.SubjectRequest request) {
+    public SubjectDTO createSubject(SubjectRequest request) {
         if(subjectRepository.existsByName(request.getName())) throw new RuntimeException("Subject exists");
         SubjectEntity subject = SubjectEntity.builder().name(request.getName()).build();
         SubjectEntity saved = subjectRepository.save(subject);

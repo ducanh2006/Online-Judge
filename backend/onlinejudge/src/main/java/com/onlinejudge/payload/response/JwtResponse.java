@@ -1,4 +1,4 @@
-package com.onlinejudge.payload;
+package com.onlinejudge.payload.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.onlinejudge.payload;
+package com.onlinejudge.payload.response;
 
 import com.onlinejudge.entity.SubmissionEntity;
 

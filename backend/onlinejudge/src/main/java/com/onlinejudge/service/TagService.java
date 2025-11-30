@@ -3,6 +3,7 @@ package com.onlinejudge.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.onlinejudge.payload.request.TagRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,7 +22,7 @@ public class TagService {
         return tags.stream().map(t -> TagDTO.builder().id(t.getId()).name(t.getName()).build()).collect(Collectors.toList());
     }
 
-    public TagDTO createTag(com.onlinejudge.payload.TagRequest request) {
+    public TagDTO createTag(TagRequest request) {
         if(tagRepository.findByNameIgnoreCase(request.getName()).isPresent()) throw new RuntimeException("Tag exists");
         TagEntity tag = TagEntity.builder().name(request.getName()).build();
         TagEntity saved = tagRepository.save(tag);

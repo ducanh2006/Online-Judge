@@ -1,0 +1,5 @@
+{
+  "name": "MathOJ - AI Powered Judge",
+  "description": "An online judge system for mathematics where solutions are graded by AI models in real-time.",
+  "requestFramePermissions": []
+}
