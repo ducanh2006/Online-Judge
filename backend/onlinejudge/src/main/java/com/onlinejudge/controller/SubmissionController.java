@@ -25,8 +25,9 @@ import com.onlinejudge.dto.PageResponse;
 import com.onlinejudge.dto.SubmissionDTO;
 import com.onlinejudge.payload.request.CreateSubmissionRequest;
 import com.onlinejudge.payload.response.SubmissionCreatedResponse;
-import com.onlinejudge.utils.JwtUtils;
 import com.onlinejudge.service.SubmissionService;
+import com.onlinejudge.utils.JwtUtils;
+import com.onlinejudge.utils.RedisRateLimiter;
 import com.openai.client.OpenAIClient;
 import com.openai.core.http.StreamResponse;
 import com.openai.models.chat.completions.ChatCompletionChunk;
@@ -40,6 +41,7 @@ import com.openai.models.chat.completions.ChatCompletionCreateParams;
 public class SubmissionController {
     @Autowired private SubmissionService submissionService;
     @Autowired private JwtUtils jwtService;
+    @Autowired private RedisRateLimiter rateLimiter;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -94,6 +96,17 @@ public class SubmissionController {
         if (!jwtService.isTokenValid(token)) {
             throw new RuntimeException("Invalid token");
         }
+        
+        String userId = jwtService.getIdFromToken(token).toString()+jwtService.getUsernameFromToken(token);
+        if (!rateLimiter.isAllowed(userId)) {
+            SseEmitter errorEmitter = new SseEmitter(0L);
+            try {
+                errorEmitter.send(SseEmitter.event().name("error").data("Rate limit exceeded: max 10 requests per minute"));
+                errorEmitter.complete();
+            } catch (Exception ignored) {}
+            throw new RuntimeException("Rate limit exceeded: max 10 requests per minute");
+        }
+        
         SseEmitter emitter = new SseEmitter(0L);
 
         // --- TẠO params TRƯỚC KHI CHẠY THREAD ASYNC ---
